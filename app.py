@@ -5,22 +5,20 @@ from db import items, stores
 
 app = Flask(__name__)
 
-@app.get('/stores')
+@app.get('/stores') # Get all stores
 def get_stores():
     return {'stores': list(stores.values())}
 
-# @app.get('/stores')
-# def get_stores():
-#     return {'stores': stores}
 
-@app.get('/stores/<string:store_id>')
+@app.get('/stores/<string:store_id>') # Get especific store
 def get_store(store_id):
     try:
         return stores[store_id], 200
     except KeyError:
         abort(404, message='Store not found.')
 
-@app.post('/stores')
+
+@app.post('/stores') # Create new store
 def create_stores():
     store_data  = request.get_json()
     if 'name' not in store_data:
@@ -36,9 +34,21 @@ def create_stores():
     return store, 201
 
 
+@app.delete('/store/<string:store_id>') # Delete specific store
+def delete_store(store_id):
+    try:
+        del stores[store_id]
+        return {'message': 'Store deleted successfully.'}, 200
+    except KeyError:
+        abort(400, message='Store not found')
 
 
-@app.post('/item')
+@app.get('/item') # Gell all items
+def get_all_item():
+    return {'items': list(items.values())}, 200
+
+
+@app.post('/item') # Create new item in the store
 def create_item():
     item_data = request.get_json()
     if (
@@ -76,18 +86,16 @@ def create_item():
 
     return item, 201
 
-@app.get('/item')
-def get_all_item():
-    return {'items': list(items.values())}, 200
 
-@app.get('/item/<string:item_id>')
+@app.get('/item/<string:item_id>') # Get specific item
 def get_item(item_id):
     try:
         return items[item_id], 200
     except KeyError:
         abort(404, message='Item not found.')
 
-@app.delete('/item/<string:item_id>')
+
+@app.delete('/item/<string:item_id>') # Delete specific item
 def delete_item(item_id):
     try:
         del items[item_id]
@@ -95,7 +103,8 @@ def delete_item(item_id):
     except KeyError:
         abort(404, message='Item not found.')
 
-@app.put('/item/<string:item_id>')
+
+@app.put('/item/<string:item_id>') # Change specific item
 def update_item(item_id):
     item_data = request.get_json()
 
