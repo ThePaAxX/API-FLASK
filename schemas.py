@@ -24,6 +24,7 @@ class ItemSchema(PlainItemSchema):
     store_id = fields.Int(required=True, load_only=True)
     
     store    = fields.Nested(PlainStoreSchema(), dump_only=True) # Aca estamos hacinedo un valor anidado 
+    tags     = fields.List(fields.Nested(PlainTagSchema()), dump_only=True)
 
 class UpdateStoreSchema(Schema):
     id   = fields.Str(dump_only=True)
@@ -36,4 +37,15 @@ class StoreSchema(PlainStoreSchema):
 class TagSchema(PlainTagSchema):
     store_id = fields.Int(dump_only=True)
 
-    store    = fields.Nested(PlainStoreSchema(), dump_only=True)  # Aca estamos hacinedo un valor anidado
+    store    = fields.Nested(PlainStoreSchema(), dump_only=True)  # Aca estamos haciendo un valor anidado
+    items    = fields.List(fields.Nested(PlainItemSchema()), dump_only=True)
+
+class TagAndItemSchema(Schema):
+    message = fields.Str()
+    item    = fields.Nested(ItemSchema)
+    tag     = fields.Nested(TagSchema)
+
+class UserSchema(Schema):
+    id       = fields.Int(dump_only=True)
+    username = fields.Str(required=True)
+    password = fields.Str(load_only=True)  # Esto significa que no se devolverá en las respuestas, solo se usará para cargar datos
