@@ -5,6 +5,8 @@ from flask import Flask
 from flask_smorest import Api
 from flask_jwt_extended import JWTManager
 from flask import jsonify
+from flask_cors import CORS
+from datetime import timedelta
 
 from db import db
 from blocklist import BLOCKLIST
@@ -32,12 +34,24 @@ def create_app(db_url=None):
     api = Api(app)
 
     app.config['JWT_SECRET_KEY'] = '122980922952672538296416966144101176097'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=60)
+    # Activa JWT en cookies
+    app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  
+    app.config["JWT_COOKIE_SECURE"] = False  # True en producción con HTTPS
+    app.config["JWT_COOKIE_SAMESITE"] = "None"  # Necesario si frontend y backend están en diferentes dominios
+    app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # Actívalo en prod si quieres CSRF tokens extra
+
     jwt = JWTManager(app)
+
+    CORS(app, resources={r"/*": {
+        "origins": ['http://localhost:3000'],
+        "supports_credentials": "True",
+        "allow_methods": ["GET", "POST", "PUT", "DELETE"],
+        }})
 
     # Esta seccion es para manejar el bloqueo y el logout de la sesion de los usuarios
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blocklist(jwt_header, jwt_payload):
-        print(BLOCKLIST)
         return jwt_payload['jti'] in BLOCKLIST
     
     @jwt.revoked_token_loader
@@ -52,7 +66,13 @@ def create_app(db_url=None):
     def add_claims_to_jwt(identity):
         # Aca puede ir una logica para la bd
         if identity == '1':
-            return {'is_admin': True}
+            user = models.UserModel.query.filter(models.UserModel.id == identity).first()
+            if user:
+                return {
+                    'is_admin': True,
+                    'username': user.username
+                    }
+        
         return {'is_admin': False}
 
     @jwt.expired_token_loader
