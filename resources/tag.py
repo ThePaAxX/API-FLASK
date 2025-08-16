@@ -13,6 +13,7 @@ blp = Blueprint('Tags', __name__, description='Operations on tags')
 
 @blp.route('/tag')
 class TagList(MethodView):
+    @jwt_required
     @blp.response(200, TagSchema(many=True))
     def get(self):
         return TagModel.query.all()

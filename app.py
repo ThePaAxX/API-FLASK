@@ -7,6 +7,7 @@ from flask_jwt_extended import JWTManager
 from flask import jsonify
 from flask_cors import CORS
 from datetime import timedelta
+from flask_migrate import Migrate
 
 from db import db
 from blocklist import BLOCKLIST
@@ -30,16 +31,17 @@ def create_app(db_url=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url or os.getenv('DATABASE_URL', 'sqlite:///data.db')
     app.config['SQLALCHEMY_TRACK_MOFIFICATION'] = False
     db.init_app(app)
+    migrate = Migrate(app, db)
 
     api = Api(app)
 
     app.config['JWT_SECRET_KEY'] = '122980922952672538296416966144101176097'
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=60)
-    # Activa JWT en cookies
-    app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=60)
+    # # Activa JWT en cookies
+    # app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  
     app.config["JWT_COOKIE_SECURE"] = False  # True en producción con HTTPS
     app.config["JWT_COOKIE_SAMESITE"] = "None"  # Necesario si frontend y backend están en diferentes dominios
-    app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # Actívalo en prod si quieres CSRF tokens extra
+    # app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # Actívalo en prod si quieres CSRF tokens extra
 
     jwt = JWTManager(app)
 
@@ -101,8 +103,8 @@ def create_app(db_url=None):
             401
         )
 
-    with app.app_context():
-        db.create_all()
+    # with app.app_context():
+    #     db.create_all()
 
     api.register_blueprint(ItemBlueprint)
     api.register_blueprint(StoreBlueprint)
