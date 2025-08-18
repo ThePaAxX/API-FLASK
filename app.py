@@ -8,6 +8,7 @@ from flask import jsonify
 from flask_cors import CORS
 from datetime import timedelta
 from flask_migrate import Migrate
+from dotenv import load_dotenv
 
 from db import db
 from blocklist import BLOCKLIST
@@ -19,6 +20,7 @@ from resources.tag   import blp as TagBlueprint
 from resources.user  import blp as UserBlueprint
 
 def create_app(db_url=None):
+    load_dotenv()  # Carga las variables de entorno desde el archivo .env
     app = Flask(__name__)
 
     app.config['PROPAGATE_EXCEPTIONS'] = True
@@ -35,18 +37,21 @@ def create_app(db_url=None):
 
     api = Api(app)
 
-    app.config['JWT_SECRET_KEY'] = '122980922952672538296416966144101176097'
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=60)
+    app.config['JWT_TOKEN_LOCATION'] = ['headers']
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
     # # Activa JWT en cookies
     # app.config["JWT_TOKEN_LOCATION"] = ["cookies"]  
-    app.config["JWT_COOKIE_SECURE"] = False  # True en producción con HTTPS
-    app.config["JWT_COOKIE_SAMESITE"] = "None"  # Necesario si frontend y backend están en diferentes dominios
+    # app.config["JWT_COOKIE_SECURE"] = False  # True en producción con HTTPS
+    # app.config["JWT_COOKIE_SAMESITE"] = "None"  # Necesario si frontend y backend están en diferentes dominios
     # app.config["JWT_COOKIE_CSRF_PROTECT"] = False  # Actívalo en prod si quieres CSRF tokens extra
 
     jwt = JWTManager(app)
 
     CORS(app, resources={r"/*": {
-        "origins": ['http://localhost:3000'],
+        "origins": '*', #['http://localhost:3000']
         "supports_credentials": "True",
         "allow_methods": ["GET", "POST", "PUT", "DELETE"],
         }})

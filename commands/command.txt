@@ -1,2 +1,4 @@
 Create Image: docker build -t flask-smorest-api . 
 Start Container: docker run -dp 5001:5000 -w /app -v "$(pwd):/app" flask-smorest-api
+
+Start Frontend: npm run dev -- --hostname 0.0.0.0 --port 3000
